@@ -1,0 +1,746 @@
+{% extends "base.html" %}
+{% load social_share %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<main class="mt-5">
+  <div class="container dark-grey-text">
+    <!--Grid row-->
+    <div class="row">
+      <!--Grid column-->
+      <div class="col col-sm-7 col-md-7 col-lg-8">
+        <div class="d-flex justify-content-center" id="slider">
+          <div class="mySlides">
+            <img src="{{variant.image.url}}" class="image_big"  alt="">
+          </div>
+          {% for item in images %}
+          <div class="mySlides">
+            <img src="{{item.image.url}}" class="image_big" style="width:100%" alt="">
+          </div>
+          {% endfor %}
+          <a class="prev" onclick="plusSlides(-1)">❮</a>
+          <a class="next" onclick="plusSlides(1)">❯</a>
+
+        </div>
+        <div class="d-flex mt-4 justify-content-center">
+          {% for i in variants %}
+            <div class="images_color">
+              <img src="{{i.image.url}}" alt="" class="image_color">
+              <p class="text-center mb-0 small">{{i.color}}</span>
+            </div>
+          {% endfor %}
+        </div>
+         
+        <div class="d-flex flex-row justify-content-center align-items-center mt-4">
+          <div class="share">
+          <div><span class="text-info">Share:</span>  </div>
+          {% post_to_facebook variant.slug " " "fab fa-facebook-square fa-2x mx-2" %}
+          {% post_to_twitter " " variant.slug  " " 'fab fa-twitter-square fa-2x' %}
+          </div>
+          <div class="ml-3">
+            <form action="{% url 'product:like_product' %}" method="POST" id="form_submit">
+              {% csrf_token %}
+                <input type="hidden" value="{{variant.id}}" name="like">
+                {% if user.is_authenticated %}
+                {% if user not in variant.likeed.all %}
+                <button type="submit" class="like"  value="Like"><i class="far fa-heart mr-2" aria-hidden="true" ></i></button>
+                {% else %}
+                <button type="submit" class="like" value="Unlike"><i class="fas fa-heart mr-2" aria-hidden="true" ></i></button>
+                {% endif %}
+                {% else %}
+                <a href="{% url 'app_user:signin' %}" class="like"><i class="far fa-heart mr-2" aria-hidden="true" ></i></a>
+                {% endif %}     
+            </form>
+          </div>
+          <a><span class="text-info">Đã thích ({{variant.num_like}})</span></a>
+        </div>
+        
+        
+       
+      </div>
+
+      <!--Grid column-->
+      <div class=" col col-sm-5 col-md-5 col-lg-4  justify-align-end ">
+        <!--Content-->
+        
+            <div class="product-rating mb-2">
+              <p>{{ variant.item }}</p>
+              <i class="{% if variant.avaregereview < 0.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+              <i class="{% if variant.avaregereview < 1.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+              <i class="{% if variant.avaregereview < 2.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+              <i class="{% if variant.avaregereview < 3.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+              <i class="{% if variant.avaregereview < 4.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+              <!-- next line is for average value -->
+              <a href="#review">{{ variant.countreview}} {% if variant.countreview > 1 %} reviews {% else %} review {% endif%} </a>
+            </div>
+         
+     
+            <div class="d-flex">
+            {% for i in colors %}
+            <a href="{{i.slug}}" class="memory  pb-1" name="memory" value="{{ i.memory }}"><span class="waves-effect mb-2">{{ i.memory }}GB</span></a>    
+
+            {% endfor %} 
+            </div>
+            <p class="mt-2"><strong>Shop:</strong> {{variant.shop}}</p>
+          
+            <p class="lead mt-2">
+              {% if variant.discount_price %}
+              <span class="mr-1">
+                <del>${{ variant.price }}</del>
+              </span>
+              <span>${{ variant.discount_price }}</span>
+              {% else %}
+              <span>${{ variant.price }}</span>
+              {% endif %}
+            </span>
+            </p>
+            <div class="mt-2">
+              <a href="#" class="btn btn-primary btn-md mr-1 my-1" id="buy">Buy now</a>
+              <a href="" class="btn btn-primary btn-md  mr-1 my-1">Installment</a>
+            </div>
+      </div>    
+          <!--------------------------------------------------shopping------------------------------------------------------->
+      <div class='blacks'>
+          <div class="cart">
+            <div>
+              <h5>{{variant.item}} {{variant.ram}}GB</h5> <i class="fa fa-times" id="times"></i>
+              
+              <span class="mr-1">
+              <del>${{ variant.price }}</del>
+              </span>
+              <span>${{ variant.discount_price }}</span>
+            </div>
+            <span>Please choice color</span>
+            <div class="color_product ml-2">
+              <form action="{% url 'order:add_to_cart' %}" method="POST">
+                {% csrf_token %} 
+                <div class="row ml-2">
+                  {% for i in variants %}
+                  <div class="ml-2" id="max_min" value="{{i.stock}}">                  
+                    <img src="{{i.image.url}}" alt="" class="image_colors">
+                    <p class="text-center mb-0 small">{{i.color}}</p>
+                    <input type="radio" name="color" value="{{i.id}}"  required class="ml-3 submit" >
+                  </div>
+                  {% endfor %}
+                  
+                </div>
+                <p>Please choice quantity</p>
+                <div class="input-group" id="choice_quantity">
+                  <span class=" btn-minus">
+                    <button class="btn btn-white " type="button">
+                      <i class="fa fa-minus" aria-hidden="true"></i>
+                    </button>
+                  </span>
+                  <input type="number" name="quantity" class="form-control no-padding text-center" id="max" width="40px" value=1 step=1 min=1 max=1>
+                      <span class=" btn-plus">
+                        <button class="btn btn-red " type="button">
+                        <i class="fa fa-plus" aria-hidden="true"></i>
+                        </button>
+                      </span>
+                </div>
+                <input type="submit" class="btn btn-primary btn-md m-2" id="quantity" value="Add to card">
+              </form>
+            </div>           
+          </div>
+           {{product.stock}}
+        </div>
+        <!------------------------------------------shopping------------------------------------------------------------->
+        
+      
+      </div>  
+        <!--------------------------------Grid column------------------------------------------>
+        <!--------------------------------Grid column-------------------------------------->
+    <div class="d-flex mt-4" id="column">
+      {% for item in image_patemeter %}
+      {% if forloop.counter == 1 %}
+      <div class="">
+        <img src="{{item.image.url}}" class="paratemer" style="width:89%" alt="">
+      </div>
+      {% endif %}
+      {% endfor %}
+      <div class="container">
+        <ul class="navbar-nav d-flex mr-4">
+          <li class="parameter">
+            <span>Minotor</span>
+            <div class="mx-3">
+              <span>{{variant.size}}</span>
+              <span>{{variant.style_minotor}}</span>
+            </div>
+          </li>
+          <li class="parameter">
+            <span>IOS</span>
+            <div class="mx-3">
+              <span>{{variant.ios}}</span>
+            </div>
+          </li>
+          <li class="parameter">
+            <span>behind camera</span>
+            <div class="mx-3">
+              <span>2 camera {{variant.behind_camera}}</span>
+              <span></span>
+            </div>
+          </li>
+          <li class="parameter">
+            <span>front camera</span>
+            <div class="mx-3">
+              <span>{{variant.front_camera}}</span>
+            </div>
+          </li>
+          <li class="parameter">
+            <span>chip</span>
+            <div class="mx-3">
+              <span>{{variant.chip}}</span>
+            </div>
+          </li>
+          <li class="parameter">
+            <span>memory</span>
+            <div class="mx-3">
+              <span>{{variant.memory}} GB</span>
+            </div>
+          </li>
+          <li class="parameter">
+            <span>ram</span>
+            <div class="mx-3">
+              <span>{{variant.ram}}</span>
+              
+            </div>
+          </li>
+          <li class="parameter">
+            <span>battery</span>
+            <div class="mx-3">
+              <span>{{variant.battery}}</span>
+              
+            </div>
+          </li>
+          <li class="parameter">
+            <span>date</span>
+            <div class="mx-3">
+              <span>{{variant.release_time|date:"M/Y"}}</span>
+              
+            </div>
+          </li>
+        </ul>
+      </div>
+        
+    </div>
+    <!--Grid row-->
+    <!-------------------------------------------------Review---------------------------------------->
+    <div id="review" class="mt-4 mb-2">
+      <div class="d-flex flex-row">
+        <div class="active"><a data-toggle="tab" href="#tab1">Details</a></div>
+        <div class="ml-4"><a data-toggle="tab" href="#tab2">{{ variant.countreview}} {% if variant.countreview > 1 %} reviews {% else %} review {% endif%}</a></div>
+      </div>
+      <div class="col col-sm-7 col-lg-7 border">
+        Review {{variant.description}}
+        <div class="product-rating my-2">
+          <a href="#review">{{ variant.avaregereview | stringformat:".1f"}}</a>
+          <i class="{% if variant.avaregereview < 0.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+          <i class="{% if variant.avaregereview < 1.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+          <i class="{% if variant.avaregereview < 2.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+          <i class="{% if variant.avaregereview < 3.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+          <i class="{% if variant.avaregereview < 4.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+          <!-- next line is for average value -->
+          <a href="#review">{{ variant.countreview}} {% if variant.countreview > 1 %} reviews {% else %} review {% endif %} </a>
+        </div>
+        <div class="rate">
+          {% for i in reviews|dictsortreversed:'review_rating' %}
+          <a href="">
+            {{ reviews.first.review_rating }}
+            <i class="fa fa-star"></i>
+          </a>
+          {% endfor %}
+        </div>
+
+        <h4></h4>
+        <div class="mt-2 ">
+          {% for rs in reviews %}
+          <div class="border-li">
+            <div><i class="fa fa-user"></i>{{ rs.user }}</div>
+            
+            <div><i class="fa fa-clock-o"></i> {{ rs.create_at}}</div>
+            <div class="review-rating">
+              <i class="{% if rs.review_rating == 1%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+              <i class="{% if rs.review_rating < 2%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+              <i class="{% if rs.review_rating < 3%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+              <i class="{% if rs.review_rating < 4%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+              <i class="{% if rs.review_rating < 5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+            </div>
+            <div class="review-body">
+              <span>{{ rs.review_text }}</span>
+            </div>
+            <div class="d-flex flex-row">
+              {% if request.user != rs.user %}
+              <form method="POST" action="{% url 'product:review_like'  rs.pk %}" id="form_submit">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <button class="like_comment {% if user in rs.likes.all %}likes{% endif %}" >
+                  <i class="fas fa-thumbs-up"> {% comment <span>{{ i.likes.all.count }}</span> %}{% endcomment %}</i>
+                </button>
+              </form>
+              <span class="text_like"> huu ich </span>
+              {% endif %}
+            </div>
+          </div>
+          <h4></h4>
+          {% endfor %}
+          <div class="d-flex justify-content-between my-2">
+            <a href="" class="btn btn-primary btn-md">xem tat ca danh gia</a>
+            <span href="#" class="btn btn-primary btn-md review_choice">viet danh gia</span>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+    <div class="d-flex flex-collumn black1">
+      <div class="review_rating_choice">
+        <span>{{variant.item}} {{variant.ram}}GB</span><i class="fa fa-times" id="times1"></i>
+        <form action="{% url 'product:review' variant.id %}" method="POST">
+        {% csrf_token %}
+        {% if user.is_authenticated %}
+        {% if order %}
+          <div class="d-flex flex-row">
+            <strong class="text-uppercase">Your Rating: </strong>
+          </div>
+          <div class="rating mr-4">
+            <input type="radio" id="star5" name="review_rating" value="5" /><label for="star5"></label>
+            <input type="radio" id="star4" name="review_rating" value="4" /><label for="star4"></label>
+            <input type="radio" id="star3" name="review_rating" value="3" /><label for="star3"></label>
+            <input type="radio" id="star2" name="review_rating" value="2" /><label for="star2"></label>
+            <input type="radio" id="star1" name="review_rating" value="1" /><label for="star1"></label>
+          </div>
+        
+          <div class="my-2 pr-2">
+            <textarea name="review_text" class="" placeholder="Your review" rows="4" cols="70"></textarea>
+          </div>
+          <button class="btn btn-primary">Submit</button>
+          {% else %}
+          you purchase product to review
+          {% endif %}
+          {% endif %}
+          
+        </form>
+      </div>
+    </div>
+    <!-------------------------------------------------Review---------------------------------------->
+    
+    {% for i in category %}
+    {% if forloop.counter == 1 %}
+    <div class="my-2"><span class="h4">{{i.category}} Standout</span></div>
+    <div class="slider">
+      <div class="swiper-container review-slider"> 
+        <div class='swiper-wrapper'>
+          {% for product in i.item_set.all %} 
+            {% for item in product.variant_set.all %}
+            {% if item.stand_out == True %}
+            <div class="swiper-slide" >
+              <div class="cats">
+                    <a href="{{ item.get_absolute_url }}">
+                      <div class="image">
+                          <img src="{{ item.image.url }}" class="card-img-top mt-3" height="210px">    
+                      </div>
+                    </a>
+                    <div class=" text-center">
+                              <a href="{{ item.get_absolute_url }}" style="text-decoration: none"><span style="font-size: 15px;">{{ item.name }} </span></a>
+                                  
+                              <p style="font-size: 14px;">$
+                                  {% if item.discount_price %}
+                                  {{ item.discount_price }}
+                                  {% else %}
+                                  {{ item.price }}
+                                  {% endif %}
+                              </p>
+                              
+                              <div class="product-rating">
+                                  <i class="{% if item.avaregereview < 0.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+                                  <i class="{% if item.avaregereview < 1.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+                                  <i class="{% if item.avaregereview < 2.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+                                  <i class="{% if item.avaregereview < 3.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+                                  <i class="{% if item.avaregereview < 4.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+                                      <!-- next line is for average value -->
+                                  {{ item.avaregereview |stringformat:".0f"}}
+                              </div>
+                    </div>
+              </div>
+            </div>
+            {% endif %}    
+            {% endfor %}
+          {% endfor %}
+        </div>
+        
+      </div>
+      <div class="swiper-button-next"></div>
+      <div class="swiper-button-prev"></div>
+    </div>
+       {% endif %}  
+      {% endfor %}
+
+    <div class="shop">
+      <div class="d-flex flex-row border-right align-items-center pr-5 mr-4">
+        <div><img src="{{shop.logo.url}}" alt="" id="img-shop"></div>
+        <div class="d-flex flex-column ml-3">
+          <p>{{shop.name}}</p>
+          <p>Online </p>
+          <p>{{total}}</p>
+          <div class="d-flex ">
+            <button class="mr-2 btn btn-light border"><i class="far fa-comment"></i> CHAT NOW</button>
+            <button class="btn btn-danger"><i class="fas fa-store-alt"></i> XEM SHOP</button>
+          </div>
+        </div>
+      </div>
+      <div class="follower">
+        <div>
+          <div class="d-flex">
+            <span>Rating</span>
+            <span>dddddddd</span>
+          </div>
+          <div class="d-flex">
+            <span>Join</span>
+            <span>ddddddd</span>
+          </div>
+        </div>
+        <div>
+          <div class="d-flex">
+            <span>Product</span> 
+            <span>dddddd</span>
+          </div>
+          <div class="d-flex">
+            <span>Follower</span>
+            <span>dddddddd</span>
+          </div>
+        </div>
+          
+      </div>
+    </div>
+    <!-------------------------------------------Comment---------------------------------------------->
+    <div class="d-flex flex-column ">
+      <h5>Please leave a comment</h5>
+      <div class="my-2">
+       {% if user.is_authenticated %}
+        <form action="{% url 'product:comment' variant.id %}" method="POST">
+          {% csrf_token %}
+          <textarea name="comment" class="" placeholder="Please leave a comment" rows="4" cols="80"></textarea>
+          <div class="form-group">
+          <input type="submit" class="btn btn-info" value="send">
+          </div>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+    <!-------------------------------------------Comment---------------------------------------------->
+        
+    <!------------------------------------------Table Comment---------------------------------------------->
+    <div class="d-flex flex-column border-bottom" style="width: 60%;" >
+      <span>{{ variant.comment_set.all.count }} 
+        {% if variant.comment_set.all.count > 1 %}comments{% else %}comment{% endif %}
+      </span>
+    </div>
+    {% for i in page_list %}
+    {% if i.is_parent %}
+    <div class="d-flex flex-column border-bottom" style="width: 60%;">
+        <span><i class="fas fa-user"></i>{{i.user.username}}</span>
+        <span><i class="fas fa-clock"></i> {{ i.create_at|date:'y-m-d H:i'}}</span>
+        <span>{{i.comment}}</span>
+        {% if request.user == i.user %}
+        <form action="{% url 'product:comment-delete' %}" method="POST" id="form_submit">
+              {% csrf_token %}
+            <input type="hidden" name="product" value="{{i.id}}">
+            <button class="like_comment" title="Delete comment">
+              <i class="fas fa-trash mr-2 "></i>
+            </button>
+        </form>
+        {% endif %}
+       
+          {% if request.user != i.user %}   
+          <div class="d-flex flex-row pb-1 mb-2">
+            
+            <span class="like_comment" title="response"><i class="far fa-comment" onclick="commentReplyToggle('{{ i.pk }}')"></i> {{ i.chilren.all.count}} chats</span> 
+            
+            <form method="POST" action="{% url 'product:comment_like'  i.pk %}" id='form_submit'>
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.path }}">
+              <button class="like_comment {% if user in i.likes.all %}likes{% endif %}" >
+                <i class="fas fa-thumbs-up"> {% comment <span>{{ i.likes.all.count }}</span> %}{% endcomment %}</i>
+              </button>
+            </form>
+            <span class="text_like"> Huu ich </span>
+            <form method="POST" action="{% url 'product:comment_dislike' i.pk %}" id="form_submit">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.path }}">
+              <button class="dislike_comment {% if user in i.dislikes.all %}likes{% endif %}" >
+                <i class="fas fa-thumbs-down"> </i>
+              </button>
+            </form>
+            <span class="text_like"> k huu ich</span>
+          </div>
+          <div class="mt-2 mb-1 d-none" id="{{ i.pk }}" >
+            {% if request.user.is_staff %}  
+            <form method="POST" action="{% url 'product:comment-reply' variant.id i.pk %}" class="d-dlex flex-column" id="form_submit">
+              {% csrf_token %}
+              <textarea name="comment" placeholder="Your comment" rows="5" cols="80"></textarea>
+              <div class="form-group">
+              <button class="btn btn-success mt-1">Send</button>
+              </div>
+            </form>
+            {% endif %}
+          </div>
+          {% endif %}
+      
+          {% for child_comment in i.chilren %}
+          <div class="comment">
+           
+              <div>
+                <span class="post-text">
+                  @{{ child_comment.user.username }}</a> {{ child_comment.create_at|date:'y-m-d H:i' }}
+                </span>
+              </div>
+           
+            <span>{{ child_comment.comment }}</span>
+            <div class="d-flex flex-row">
+              {% if request.user == child_comment.user %}
+              <form action="{% url 'product:comment-delete' %}" method="POST" id="form_submit">
+                {% csrf_token %}
+                <input type="hidden" name="product" value="{{child_comment.id}}">
+                <button type="submit" class="like_comment" title="Delete comment">
+                  <i class="fas fa-trash mr-2"></i>
+                </button>
+              </form>
+              {% endif %}
+              {% if request.user != child_comment.user %}
+              <form method="POST" action="{% url 'product:comment_like'  i.pk %}" id='form_submit'>
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <button class="like_comment {% if user in i.likes.all %}likes{% endif %}" >
+                  <i class="fas fa-thumbs-up"> {% comment <span>{{ i.likes.all.count }}</span> %}{% endcomment %}</i>
+                </button>
+              </form>
+              <span class="text_like"> huu ich </span>
+              {% endif %}
+            </div>
+            
+          </div>
+          {% endfor %}
+       
+    </div>
+    {% endif %}
+    {% endfor %}
+    <!------------------------------------------- Table Comment---------------------------------------------->
+  
+  
+    <div class="pagination ">
+      <span class="d-flex flex-row">
+        {% if page_list.has_previous %}
+        <a class="mr-2 text-dark"
+          href="?page={{page_list.previous_page_number}}">&laquo;</a>
+        {% endif %}
+  
+        {% for i in page_list.paginator.page_range %}
+        {% if page_list.number == i %}
+        <li class="active mr-2">
+          <span class="text-info">{{ i }} <span class="text-dark"></span></span>
+        </li>
+        {% else %}
+        <li class="mr-2"><a class="text-dark" href="?page={{i}}">{{i}}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+        {% if page_list.has_next %}
+        <a class="text-dark"
+          href="?page={{page_list.next_page_number}}">&raquo;</a>
+        {% endif %}
+      </span>
+    </div>
+    
+  </div>  
+  <!--Grid row-->
+</main>
+
+<script>
+  $(document).ready(function() {
+    $('.btn-minus').click(function () {
+      var $input = $(this).parent().find('input');
+      var count = parseInt($input.val()) - 1;
+      count = count < 1 ? 1 : count;
+      $input.val(count);
+      $input.change();
+      return false;
+    });
+    $('.btn-plus').click(function () {
+      var $input = $(this).parent().find('input');
+      var count = parseInt($input.val()) + 1;
+      count = count > $input.attr('max') ? $input.attr('max') : count;
+      $input.val(count);
+      $input.change();
+      return false;
+    });
+  });
+  
+circle = document.querySelectorAll('.circle')
+for (let i=0;i,circle.length;i++){
+circle[i].onclick=()=>{
+circle[i].classList.add('circle-active')
+}
+}
+
+var swiper = new Swiper(".review-slider", {
+        spaceBetween: 10,
+        loop:true,
+        autoplay: {
+            delay: 2500,
+            disableOnInteraction: false,
+        },
+        navigation:{
+            nextEl: ".swiper-button-next",
+            prevEl: ".swiper-button-prev",
+          }, 
+         
+        grabCursor: true,
+        centeredSlides: true,
+        
+
+        breakpoints: {
+            480: {
+              slidesPerView: 2,
+            },
+            640: {
+              slidesPerView: 3,
+            },
+            768: {
+              slidesPerView: 4,
+            },
+            1024: {
+              slidesPerView: 5,
+            },
+        },
+    });  
+
+</script>
+<script>
+ buy =document.querySelector('#buy')
+ black = document.querySelector('.blacks')
+ cart = document.querySelector('.cart')
+times = document.querySelector('#times')
+buy.onclick=()=>{
+black.classList.add('black-active')
+cart.classList.add('cart-active')
+}
+times.onclick=()=>{
+cart.classList.remove('cart-active')
+black.classList.remove('black-active')
+}
+
+review_choice =document.querySelector('.review_choice')
+black1 = document.querySelector('.black1')
+review_rating_choice = document.querySelector('.review_rating_choice')
+times1 = document.querySelector('#times1')
+review_choice.onclick=()=>{
+black1.classList.add('black-active')
+review_rating_choice.classList.add('cart-active')
+}
+times1.onclick=()=>{
+review_rating_choice.classList.remove('cart-active')
+black1.classList.remove('black-active')
+}
+</script>
+
+<script>
+image_small = document.querySelectorAll('.image_color')
+image_big = document.querySelector('.image_big')
+for (let i = 0; i < image_small.length; i++) {
+  image_small[i].onclick = () => {
+     src = image_small[i].getAttribute('src')
+    image_big.setAttribute('src',src)
+    image_small[i].classList.add('image_color-active')
+    for (let j = 0; j < image_small.length; j++) {
+      if (i !== j) {
+        image_small[j].classList.remove('image_color-active')
+      }
+    }
+  }
+}
+
+var slideIndex = 1;
+showSlides(slideIndex);
+
+function plusSlides(n) {
+  showSlides(slideIndex += n);
+}
+function showSlides(n) {
+  var i;
+  var slides = document.getElementsByClassName("mySlides");
+  if (n > slides.length) {slideIndex = 1}
+  if (n < 1) {slideIndex = slides.length}
+  for (i = 0; i < slides.length; i++) {
+      slides[i].style.display = "none";
+  }
+  slides[slideIndex-1].style.display = "block";
+}
+
+function commentReplyToggle(parent_id) {
+	const row = document.getElementById(parent_id);
+
+	if (row.classList.contains('d-none')) {
+		row.classList.remove('d-none');
+	} else {
+		row.classList.add('d-none');
+	}
+}
+
+function showNotifications() {
+	const container = document.getElementById('notification-container');
+
+	if (container.classList.contains('d-none')) {
+		container.classList.remove('d-none');
+	} else {
+		container.classList.add('d-none');
+	}
+}
+
+max_min=document.querySelectorAll('#max_min')
+max=document.querySelector('#max')
+quantity=document.querySelector('#quantity')
+choice_quantity=document.querySelector('#choice_quantity')
+for (let i=0; i<max_min.length;i++){
+max_min[i].onclick=()=>{
+max.max=max_min[i].getAttribute('value')
+if(max.max == 0){
+quantity.value="Hết hàng"
+quantity.type="button"
+choice_quantity.classList.add('d-none')
+}
+else{
+quantity.type="submit"
+quantity.value="Add to cart"
+max.value=1
+choice_quantity.classList.remove('d-none')
+}
+}
+}
+
+images =  document.querySelectorAll('.image_colors')
+radio =  document.querySelectorAll('.submit')
+
+for(let i=0;i<radio.length;i++){
+radio[i].onclick=()=>{
+for (let j=0;j<images.length;j++){
+images[j].classList.remove('image_colors-active')
+if (i===j){
+images[j].classList.add('image_colors-active')
+}
+}
+}
+}
+
+for (let j=0;j<images.length;j++){
+  images[j].onclick=()=>{
+  
+  for(let i=0;i<radio.length;i++){
+  images[i].classList.remove('image_colors-active')
+  if (i===j){
+  radio[i].checked=true
+  images[i].classList.add('image_colors-active')
+     }
+  }
+}   
+}
+</script>
+{% endblock content %}

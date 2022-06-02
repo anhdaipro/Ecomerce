@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<main >
+    
+  <div class="container wow fadeIn">
+    <h2 class="my-3 h2 text-center">Checkout form</h2>
+    
+    <div class="d-flex flex-column">
+        <form method="POST" action="{% url 'order:checkout' %}" id="form1" >
+          {% csrf_token %}
+        </form>    
+          <h3>Shipping address</h3>
+          {% if default_shipping_address %}
+          <div class="custom-control custom-checkbox mb-1">
+            <input type="checkbox" class="custom-control-input" name="use_default_shipping" id="use_default_shipping" form="form1" checked/>
+            <label class="custom-control-label" for="use_default_shipping">Use default shipping address:{{default_shipping_address.name}} (+84){{default_shipping_address.phone_number}} {{default_shipping_address.address}}</label>
+          </div>
+          {% endif %}
+          <span class="shipping_address">Use another shipping address</span>
+          <div class='hideable_shipping_form d-none'>
+            <div class="md-form ">
+              <div class="infomation">ho va ten</div>
+              <input type='text' placeholder='name' id='shipping_address2' name='name' class='form-control' form="form1"/>
+            </div>
+            <div class="md-form ">
+              <div class="infomation">Phone_number</div>
+              <input type='text' placeholder='phone number' id='shipping_address2' name='phone_number' class='form-control' form="form1"/>
+            </div>
+            <div class="md-form ">
+              <div class="infomation">Address</div>
+              <input type='text' placeholder='1234 Main St' id='shipping_address' name='shipping_address' class='form-control' form="form1" />
+            </div>
+            <div class="md-form ">
+              <div class="infomation">City</div>
+              <input type='text' placeholder='city' id='shipping_address2' name='city' class='form-control' form="form1"/>
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input type="checkbox" class="custom-control-input" name="same_billing_address" id="same_billing_address" form="form1">
+              <label class="custom-control-label" for="same_billing_address">Billing address is the same as my shipping address</label>
+            </div>
+            <div class="custom-control custom-checkbox">
+                <input type="checkbox" class="custom-control-input" name="set_default_shipping" id="set_default_shipping" form="form1">
+                <label class="custom-control-label" for="set_default_shipping">Save as default shipping address</label>
+            </div>
+          </div> 
+
+          <h3>Billing address</h3>
+          {% if default_billing_address %}
+          <div class="custom-control custom-checkbox mb-1">
+            <input type="checkbox" class="custom-control-input" name="use_default_billing" id="use_default_billing" form="form1" checked>
+            <label class="custom-control-label" for="use_default_billing">Use default billing address: {{default_billing_address.name}} {{default_billing_address.address}}</label>
+          </div>
+          {% endif %}
+          <span class="billing_address">Use another billing address </span>
+          <div class='hideable_billing_form d-none'>
+              <div class="md-form ">
+                <div class="infomation">Full name</div>
+                <input type='text' placeholder='name' id='shipping_address2' name='name' class='form-control' form="form1"/>
+              </div>
+              <div class="md-form ">
+                <div class="infomation">Phone_number</div>
+                <input type='text' placeholder='phone number' id='shipping_address2' name='phone_number' class='form-control' form="form1"/>
+              </div>
+              <div class="md-form ">
+                <div class="infomation">Address</div>
+                <input type='text' placeholder='1234 Main St' id='billing_address' name='billing_address' class='form-control' form="form1"/>
+              </div>
+
+              <div class="md-form ">
+                <div class="infomation">City</div>
+                <input type='text' placeholder='Apartment or suite' id='billing_address2' name='city2' class='form-control' form="form1" />
+              </div>
+              <div class="custom-control custom-checkbox">
+                <input type="checkbox" class="custom-control-input" name="set_default_billing" id="set_default_billing" form="form1">
+                <label class="custom-control-label" for="set_default_billing">Save as default billing address</label>
+              </div>
+          </div>
+          
+          <div class="order">
+            {% for order_item in order.items.all %}
+              <div class="order_success" >
+                <div><a href="{% url 'product:product' order_item.product.slug %}"><img src="{{ order_item.product.image.url }}" alt="" width="70px"   class="border p-1"></a></div>
+                <div class="order_item">
+                <div><span>{{ order_item.product.item }} {{ order_item.product.memory }}GB</span></div>
+                <div><span>{{ order_item.product.color }}</span></div>  
+                <div class=" px-2 "><span>x{{ order_item.quantity }}</span></div>        
+                </div>
+                <div class="order_price">
+                    <del>${{ order_item.product.price }}</del>  
+                    <span class="mx-1 text-danger">${{ order_item.discount_price_item }}</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>    
+          
+          <div>
+            {% if DISPLAY_COUPON_FORM %}
+            <form class="group" width="200px" action="{% url 'order:add_coupon' %}" method="POST" id="form2">
+              {% csrf_token %}
+              <div class="form-group" width="200px">
+                {{couponform.code}}
+                <div class="input-group-append mt-1">
+                  <input class="btn btn-secondary btn-md waves-effect m-0" type="submit" value="Redden" form="form2">
+                </div>
+              </div>
+            </form>
+            {% endif %}
+          </div>
+               
+          <div class="d-block my-3">
+              <form action="{% url 'order:shipping' %}" method="POST">
+                {% csrf_token %}
+               
+                
+                  Delivery method
+                    <div class="custom-control custom-radio">
+                      <input type="radio" name="method" class="custom-control-input" value="Nhanh" checked>
+                      <label class="custom-control-label" for="indivneRadio3">Fasst</label>
+                    </div>
+                    <div class="custom-control custom-radio">
+                      <input type="radio" name="method" class="custom-control-input" value="Tiêu chuẩn" {% if order.shipping.method == "Tiêu chuẩn" %}checked{% endif %} required>
+                      <label class="custom-control-label" for="indivneRadio3">Standard</label>
+                    </div>
+                    <div class="custom-control custom-radio">
+                      <input type="radio" name="method" class="custom-control-input" value="Hỏa tốc" {% if order.shipping.method == "Hỏa tốc" %}checked{% endif %} required>
+                      <label class="custom-control-label" for="indivneRadio3">Express</label>
+                    </div>
+                    <div class="input-group-append mt-1">
+                      <button class="btn btn-secondary btn-md waves-effect m-0" type="submit">Apply</button>
+                    </div>
+                
+              </form>
+          </div>
+          <h3>Payment option</h3>
+
+          <div class="d-block my-3">
+              {% for value, name in form.fields.payment_option.choices %}
+                <div class="custom-control custom-radio">
+                  <input id="{{ name }}" name="payment_option" value="{{ value }}" type="radio" class="custom-control-input" required form="form1">
+                  <label class="custom-control-label" for="{{ name }}">{{ name }}</label>
+                </div>
+              {% endfor %}
+          </div>
+          <div class="">
+            <div class="aaaa">
+              <div class="">Total amount (USD</div>
+              <div><strong>${{order.total_final}}</strong></div>
+      
+              <div class="">Fee shiping</div>
+              <div><strong>+${{order.shipping.charge}}</strong></div>
+           
+              {% if order.coupon.amount > 0 %}
+            
+              <div class="text-success">
+                <h6 class="my-0">Promo code</h6>
+              </div>
+              <div class="text-success">
+                <span class="text-success">-${{ order.coupon.amount }}</span>
+              </div>
+              {% endif %}        
+              <div>
+                <span class=>Total payment (USD)</span>
+              </div>
+              <div>
+                <strong>${{ order.total_final_shipping }}</strong>
+              </div>
+            </div>
+              <div class=" d-flex justify-content-end border-top mt-3 p-2">
+                <button class="btn btn-primary" form="form1" style="width:200px">Order</button>
+              </div>
+              
+          </div>
+          
+         
+       
+    </div>  
+    
+  </div> 
+</main>
+
+<script>
+var hideable_shipping_form = $('.hideable_shipping_form');
+var hideable_billing_form = $('.hideable_billing_form');
+var shipping = $('.shipping_address')
+var use_default_shipping = document.querySelector("input[name=use_default_shipping]");
+var use_default_billing = document.querySelector("input[name=use_default_billing]");
+$(document).ready(function(){
+  $(".shipping_address").click(function(){
+    $(".hideable_shipping_form").toggleClass("d-none");
+  })
+  $(".billing_address").click(function(){
+    $(".hideable_billing_form").toggleClass("d-none");
+})
+})
+use_default_shipping.addEventListener('change', function() {
+  if (this.checked) {
+    hideable_shipping_form.hide();
+  } else {
+    hideable_shipping_form.show();
+  }
+})
+
+use_default_billing.addEventListener('change', function() {
+  if (this.checked) {
+    hideable_billing_form.hide();
+  } else {
+    hideable_billing_form.show();
+  }
+})
+
+</script>
+{% endblock %}

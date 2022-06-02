@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main>
+    
+<div class="container dark-grey-text">
+
+    {% for i in brand %}
+    <a href="{{i.item}}">{{i.brand}}</a>
+    {% endfor %}
+    <div class='row wow fadeIn' id="row">
+
+       {% for item in variant %}
+      
+        <div class="col col-lg-3 {{item.name}}"  data="{{ item.avaregereview |floatformat:0}}">
+          <div class="carts">
+              <a href="{{ item.get_absolute_url }}">
+                  <div class="image">
+                    <img src="{{ item.image.url }}" class="card-img-top mt-3">    
+                  </div>
+              </a>
+              <div class=" text-center">
+                <a href="{{ item.get_absolute_url }}" style="text-decoration: none"><span style="font-size: 1rem;">{{ item.name }} </span></a>   
+                <p style="font-size: 1rem;">$
+                    {% if item.discount_price %}
+                    {{ item.discount_price }}
+                    {% else %}
+                    {{ item.price }}
+                    {% endif %}
+                </p>
+                
+                <div class="product-rating">
+                    <i class="{% if item.avaregereview < 0.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+                    <i class="{% if item.avaregereview < 1.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+                    <i class="{% if item.avaregereview < 2.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+                    <i class="{% if item.avaregereview < 3.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+                    <i class="{% if item.avaregereview < 4.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+                        <!-- next line is for average value -->
+                    {{ item.avaregereview |stringformat:".0f"}}
+                </div>
+              </div>
+
+            </div>
+        </div>
+       
+      {% endfor %}
+    </div>
+ </div>
+</main>
+<script>
+ image=document.querySelectorAll('.image')
+    for(let i=0;i<image.length;i++){
+    image[i].onmouseover=()=>{
+    image[i].classList.add('image-active')
+    }
+    image[i].onmouseout=()=>{
+    image[i].classList.remove('image-active')
+    }
+  }
+</script>
+{% endblock content %}

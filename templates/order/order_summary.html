@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+{% load cart_template_tags %}
+{% block content %}
+<main class="container">
+
+    <h2>Order Summary</h2>
+    {% if orders > 10  and orders < 20 and time < time_month  %}
+    <div> bạn đã hủy quá nhiều</div>
+   
+   
+    
+    {% else %}
+    {{products.count}}
+    <div>
+        
+        <div class="d-flex flex-column">
+            <div class="order_total">
+                <div class="item_order">
+                   
+                    <div >
+                        <form action="{% url 'order:check_order' %}" method="POST" class="my_form_order">
+                            {% csrf_token %} 
+                            <div class="submit_form_order"><input type="checkbox" class="check" name="check" {% if object.check == True %}checked{% endif %}></div>
+                        </form>
+                    </div>
+                    <div >Product</div>
+                    <div >Image</div>
+                    <div >Color</div>
+                    <div >Price</div>
+                    <div >Quantity</div>
+                    <div >Total Item Price</div>
+                    <div ></div>
+                        
+                </div>
+            </div>
+            
+                
+            <div class="mt-2">
+                {% for i in shops %}
+                    
+                        {% ifchanged  %}
+                        
+                        <div class="order_total">
+                           
+                            <div class="d-flex justify-content-star">
+                                <form action="{% url 'order:shop_check' %}" method="POST" class="my_form_er_shop">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="name" value="{{i.name}}" >
+                                    <div class="submit_fop"><input type="checkbox" class="check_item" name="check" {% if i.check == True %}checked{% endif %}>
+                                    </div>
+                                    <button>ffffff</button>
+                                </form>
+                                <div>{{i.name}}</div>
+                            </div>
+                            <div class="d-flex flex-column ">
+                                {% for item in i.variants.all %}
+                                    {% for order_item in object.items.all %}
+                                    {%if item ==  order_item.product %}
+                                    <div class="item_order">
+                                        <div>
+                                            
+                                            <form action="{% url 'order:check' %}" method="POST" class="my_form">
+                                            {% csrf_token %} 
+                                            <input type="hidden" name="color" value="{{order_item.id}}" class="color">
+                                            <div class="submit_form"><input type="checkbox" class="check_item" name="check" {% if order_item.check == True %}checked{% endif %}>
+                                            </div>
+                                            </form>
+                                        </div>
+                                        <div >{{ order_item.product.item }} {{ order_item.product.memory }}GB</div>
+                                        <div ><a href="{% url 'product:product' order_item.product.slug %}"><img src="{{ order_item.product.image.url }}" alt="" height="80px" class="ml-0"></a></div>
+                                        <div>{{ order_item.product.color }}</div>
+                                        <div>{{ order_item.product.price }}</div>
+                                        <div class="text-secondary">
+                                            <div class="d-flex flex-row  text-secondary ">
+                                                <form action="{% url 'order:remove_single_item_from_cart' %}" method="POST" class="border border-secondary" id="form_submit">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="color" value="{{order_item.id}}">
+                                                    <button type="submit" style="background: transparent;border:none">
+                                                    <i class="fa fa-minus  text-info"></i>
+                                                    </button>
+                                                </form>
+                                                    <div class=" px-2 border border-secondary">{{ order_item.quantity }}</div>
+                                                {% if order_item.quantity < order_item.product.stock %}                      
+                                                <form action="{% url 'order:add_single_item_from_cart' %}" method="POST" class="border border-secondary" id="form_submit">
+                                                    {% csrf_token %}
+                                                        <input type="hidden" name="color" value="{{order_item.id}}">          
+                                                        <button type="submit" style="background: ansparent;border:none">
+                                                        <i class="fa fa-plus text-info"></i>
+                                                        </button>
+                                                </form>
+                                                {% else %}
+                                                <div class="border border-secondary"><i class="fa fa-plus mx-2"></i></div>
+                                                {% endif %}
+                                            </div>
+                                        
+                                        </div>
+                                        <div>
+                                            {% if order_item.product.discount_price %}
+                                            <span class="price_item">${{ order_item.discount_price_item }}</span>
+                                            <span class="badge badge-primary">Saving ${{ order_item.save_item }}</span>
+                                            {% else %}
+                                            <span class="price_item">${{ order_item.price_item }}</span>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <form action="{% url 'order:remove_from_cart' %}" method="POST" id='form_submit'>
+                                                {% csrf_token %}
+                                                    <input type="hidden" name="color" value="{{order_item.id}}" class="delete">
+                                                    <button type="submit" style="background: divansparent;border:none">
+                                                    <i class="fas fa-trash mr-2"></i>
+                                                    </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {%endifchanged%}
+                        {% empty %}
+                        
+                        <div colspan='5'>Your cart is empty</div>
+                        <div colspan="5">
+                            <a class='btn btn-primary float-right' href='/'>Continue shopping</a>
+                        </div>
+                   
+                {% endfor %}
+
+                    {% if object.coupon and object.coupon.amount > 0 %}
+                    
+                        <div colspan="4"><b>Coupon</b></div>
+                        <div><b>-${{ object.coupon.amount }}</b></div>
+                    
+                    {% endif %}
+                    
+                   
+                    
+            </div>
+        </div>
+        
+        
+        <div class="order_total">
+            <div class="d-flex flex-row justify-content-between border-bottom pb-2">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span class="mx-4">Shop voucher</span>
+                <span class="buy text-info waves-effect">Choice or enter code</span>
+            </div>
+            <div class="blacks">
+                <div class="cart">
+                    <form  action="{% url 'order:add_coupon' %}" method="POST" id="form_submit">
+                    {% csrf_token %}
+                        
+                        {{ couponform.code }}
+                        <div class="d-flex flex-row my-4 justify-content-end">
+                            <button type="submit" class="btn btn-info">Redeen</button>
+                            <button type="button" class="btn btn-info back mx-2">Back</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+                
+            <div class="d-flex flex-row justify-content-between my-3 align-items-center" >
+                <div class="anh1">
+                    <form action="{% url 'order:check_order' %}" method="POST" class="my_form_orders">
+                        {% csrf_token %} 
+                        <div class="submit_form_orders">
+                            <input type="checkbox"  id="check" class="p-5" name="check" {% if object.check == True %}checked{% endif %} style="padding: 3rem;">
+                            <p >Choice all</p>
+                         </div>
+                    </form>
+                </div>
+                {% if object.total_final %}   
+                <div>
+                    <b>Order Total</b>
+                    <b class="total_final">${{ object.total_final }}</b>
+                </div>
+                
+                {%else%}
+                
+                <div>
+                    <b>Order Total</b>
+                    <b class="total_final">${{ object.not_price }}</b>
+                </div>
+            
+                {% endif %}
+                <div>
+                    {% if object.total_final %}
+                    <a class='btn btn-warning float-right ml-2' href='/checkout/'>Proceed to checkout</a>
+                    {%else%}
+                    <a class='btn btn-warning float-right ml-2 buy' href='#'>Proceed to checkout</a>
+                    {% endif %}
+                    <div class="blacks">
+                        <div class="cart">
+                            <p>bạn chưa chọn sp nào để mua</p>
+                            <button type="button" class="cancel btn btn-info">OK</button>
+                        </div>
+                    </div>
+                    
+                    
+                </div>
+            </div>
+        
+        </div>
+        CÓ THỂ BẠN CŨNG THÍCH
+        <div class="slider">
+            <div class="swiper-container review-slider">
+                <div class="swiper-wrapper" >
+                    {% for item in products %}
+                        <div class="swiper-slide">
+                            <div class="cats">
+                                <a href="{{ item.get_absolute_url }}">
+                                    <div class="image">
+                                        <img src="{{ item.image.url }}" class="card-img-top mt-3" height="200px">    
+                                    </div>
+                                </a>
+                                <div class=" text-center">
+                                    <a href="{{ item.get_absolute_url }}" style="text-decoration: none"><span style="font-size: 15px;">{{ item.name }} </span></a>
+                                        
+                                    <p style="font-size: 14px;">$
+                                        {% if item.discount_price %}
+                                        {{ item.discount_price }}
+                                        {% else %}
+                                        {{ item.price }}
+                                        {% endif %}
+                                    </p>
+                                    
+                                    <div class="product-rating">
+                                        <i class="{% if item.avaregereview < 0.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+                                        <i class="{% if item.avaregereview < 1.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+                                        <i class="{% if item.avaregereview < 2.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+                                        <i class="{% if item.avaregereview < 3.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+                                        <i class="{% if item.avaregereview < 4.5%}far fa-star{% else %}fas fa-star{% endif%}"></i>
+                                            <!-- next line is for average value -->
+                                        {{ item.avaregereview |stringformat:".0f"}}
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+            </div>
+            <div class="swiper-button-next "></div>
+            <div class="swiper-button-prev "></div>
+        </div>
+    </div>
+    {% endif %}
+    
+   
+   
+   
+    
+</main>
+
+<script>
+
+    
+var swiper = new Swiper(".review-slider", {
+        spaceBetween: 10,
+        loop:true,
+        autoplay: {
+            delay: 2500,
+            disableOnInteraction: false,
+        },
+        navigation:{
+            nextEl: ".swiper-button-next",
+            prevEl: ".swiper-button-prev",
+          }, 
+         
+        grabCursor: true,
+        centeredSlides: true,
+        
+
+        breakpoints: {
+            480: {
+              slidesPerView: 2,
+            },
+            640: {
+              slidesPerView: 3,
+            },
+            768: {
+              slidesPerView: 4,
+            },
+            1024: {
+              slidesPerView: 5,
+            },
+        },
+    });      
+    
+
+buy =document.querySelector('.buy')
+ black = document.querySelector('.blacks')
+ cart = document.querySelector('.cart')
+times = document.querySelector('.back')
+buy.onclick=()=>{
+black.classList.add('black-active')
+cart.classList.add('cart-active')
+}
+times.onclick=()=>{
+cart.classList.remove('cart-active')
+black.classList.remove('black-active')
+}
+time_start='{{time_reorder}}'
+
+</script>
+
+{% endblock content %}
