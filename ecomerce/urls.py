@@ -14,40 +14,28 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path,include
-from django.conf.urls.static import static
+from django.urls import path,include,re_path
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+from . import views
 from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
-
+from django.conf.urls import url
+from django.views.static import serve
+from rest_framework.authtoken.views import obtain_auth_token
+from django.views.generic import TemplateView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('account/', include('account.urls')),
-    path('', include('product.urls')),
-    path('', include('order.urls')),
-    path('', include('refund.urls')),
-    path('vendors/', include('vendor.urls')),
-    path('', include('core.urls')),
-    path('shop/', include('core.urls')),
-    path('password-reset/',auth_views.PasswordResetView.as_view(
-             template_name='account/password_reset.html'),name='password_reset'),
-    path('password-reset/done/',auth_views.PasswordResetDoneView.as_view(
-             template_name='account/password_reset_done.html'),name='password_reset_done'),
-    path('password-reset-confirm/<uidb64>/<token>/',auth_views.PasswordResetConfirmView.as_view(
-             template_name='account/password_reset_confirm.html'
-         ),name='password_reset_confirm'),
-    path('password-reset-complete/',auth_views.PasswordResetCompleteView.as_view(
-             template_name='account/password_reset_complete.html'
-         ),name='password_reset_complete'),
-    path('login/', auth_views.LoginView.as_view(), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),
-    path('oauth/', include('social_django.urls', namespace='social')),
+    path('admin', admin.site.urls),
+    path('api-auth/', include('drf_social_oauth2.urls',namespace='drf')),
+    path('<str:slug>',views.category, name='category'),
+    path('api/v4/',include('buyer.urls')),
+    path('api/v3/',include('shop.urls')),
+    path('api/v2/',include('seller.urls')),
+    path('api/v1/',include('chats.urls'))
 ]
-
-if settings.DEBUG:
-    import debug_toolbar
-    urlpatterns += [path('__debug__/', include(debug_toolbar.urls))]
-    urlpatterns += static(settings.MEDIA_URL,
-                          document_root=settings.MEDIA_ROOT)
-    urlpatterns += static(settings.STATIC_URL,
-                          document_root=settings.STATIC_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += [re_path(r'^.*', TemplateView.as_view(template_name='index.html'))]

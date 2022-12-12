@@ -9,9 +9,13 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-from django.contrib.messages import constants as messages
+
 from pathlib import Path
+from datetime import timedelta
 import os
+import dj_database_url
+import django_heroku
+from decouple import config
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,16 +24,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ii*a_)&lm6#t%hq&=u0doal19-o$ehcx8iqm^62qoc1yljm9%)'
+SECRET_KEY = 'django-insecure-ihk&62sy1(f+k*w-lx=qsla=j#w+cbhbw_!pxaqh%w#pl3!2)b'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost','127.0.0.1','orgetos.org']
-
+ALLOWED_HOSTS = ['anhdai.herokuapp.com','localhost','127.0.0.1']
 
 # Application definition
-
+CORS_ALLOWED_ORIGINS = [
+    'https://anhdai.vercel.app','http://localhost:3000'
+]
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_WHITELIST = (
+    'http:///bb-svu.anonymous.mobileapp.exp.direct:80',
+)
 INSTALLED_APPS = [
     'jazzmin',
     'django.contrib.admin',
@@ -38,18 +47,31 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+    'django.contrib.sites',
+    'cloudinary_storage',
+    'cloudinary',
     'social_django',
+    'oauth2_provider',
+    'drf_social_oauth2',
+    'rest_framework',
+    'shop',
     'account',
-    'product',
-    'order',
-    'refund',
-    'crispy_forms',
-    'django_social_share',
-    'django_countries',
-    'vendor',
-    'shop'
-    
+    'category',
+    'carts',
+    'orders',
+    'seller',
+    'discounts',
+    'itemdetail',
+    'corsheaders',
+    'buyer',
+    'city',
+    'orderactions',
+    'chats',
+    'myweb',
+    'shipping',
+    'channels',
+    'mptt',
+    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
@@ -61,15 +83,14 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware', 
-    
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = 'ecomerce.urls'
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS':  [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -82,29 +103,107 @@ TEMPLATES = [
                 
             ],
             
+            
         },
     },
 ]
 
 WSGI_APPLICATION = 'ecomerce.wsgi.application'
-
+ASGI_APPLICATION = 'ecomerce.routing.application'
 AUTHENTICATION_BACKENDS = (
-    'social_core.backends.facebook.FacebookOAuth2',
-    'social_core.backends.twitter.TwitterOAuth',
-    'social_core.backends.instagram.InstagramOAuth2',
     'social_core.backends.google.GoogleOAuth2',
+    'social_core.backends.facebook.FacebookAppOAuth2',
+    'social_core.backends.facebook.FacebookOAuth2',
+    'drf_social_oauth2.backends.DjangoOAuth2',
     'django.contrib.auth.backends.ModelBackend',
 )
+REST_USE_JWT = True
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny'
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',  
+        'drf_social_oauth2.authentication.SocialAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    )
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=2),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': False,
+    'UPDATE_LAST_LOGIN': False,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
+    'JWK_URL': None,
+    'LEEWAY': 0,
+    'AUTH_HEADER_TYPES': ('JWT',),
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+    'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
+    'JTI_CLAIM': 'jti',
+    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
+}
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'd8k68jjvd35kmk',
+        'USER': 'ndrxbdifcwcwhc',
+        'PASSWORD': '78df2214305e5be4a73842a13187b208f7c9466c9b22412b40a2ce1d132bdbbe',
+        'HOST': 'ec2-3-218-171-44.compute-1.amazonaws.com',
+        'PORT': '5432',
     }
 }
 
+db_from_env = dj_database_url.config()
+DATABASES['default'].update(db_from_env)
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dupep1afe',
+    'API_KEY': '388461171177852',
+    'API_SECRET': 'B0lnwsh6IKX4CsEAZnQHL_Miqxs'
+}
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+             'LOCATION': '127.0.0.1.11211',                          
+        }
+    }
+
+# Cache settings 
+CACHE_MIDDLEWARE_ALIAS = 'default'
+CACHE_MIDDLEWARE_SECONDS = 3600   # this number equal 1h
+CACHE_MIDDLEWARE_KEY_PREFIX = ''
+
+
+MIDDLEWARE_CLASSES=[
+    'user.middleware.ActiveUserMiddleware',
+    
+]
+# Number of seconds of inactivity before a user is marked offline
+TIME= 20*60*60
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
+SESSION_EXPIRE_AT_BROWSER_CLOSE= True
+APPEND_SLASH=False
+SESSION_IDLE_TIMEOUT = 20*60*60
+SESSION_COOKIE_AGE = TIME
+SESSION_SAVE_EVERY_REQUEST = True
+# Number of seconds that we will keep track of inactive users for before 
+# their last seen is removed from the cache
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -137,33 +236,32 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+DATE_INPUT_FORMATS=[
+    '%m/%d/%Y'
+]
 
+CORS_ALLOW_CREDENTIALS = True
+DATA_UPLOAD_MAX_NUMBER_FIELDS = None
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.2/howto/static-files/
+# https://docs.djangoproject.com/en/1.9/howto/static-files/
 
+MEDIA_URL = '/file/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 STATIC_URL = '/static/'
-MEDIA_URL = '/media/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-STATIC_ROOT = os.path.join(BASE_DIR, 'static_root')
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media_root')
-
-MESSAGE_TAGS = {
-    messages.ERROR: 'danger',
-    messages.WARNING: 'warning',
-    messages.INFO: 'info',
-    messages.SUCCESS: 'success',
-    messages.DEBUG: 'secondary'
-}
+STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 SOCIAL_AUTH_RAISE_EXCEPTIONS = False
-SOCIAL_AUTH_FACEBOOK_KEY = '3095799834025869'  # App ID
-SOCIAL_AUTH_FACEBOOK_SECRET = 'a6856d982b974abb7a0826146567409d'
+SOCIAL_AUTH_FACEBOOK_KEY = '343723940813089'  # App ID
+SOCIAL_AUTH_FACEBOOK_SECRET = 'b463a19816648184acecb3ef9e475a6a'
 SOCIAL_AUTH_FACEBOOK_SCOPE = ['email', 'user_link']
 SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
   'fields': 'id, name, email, picture.type(large), link'
 }
+SITE_ID = 1
 SOCIAL_AUTH_FACEBOOK_EXTRA_DATA = [
     ('name', 'name'),
     ('email', 'email'),
@@ -175,22 +273,34 @@ SOCIAL_AUTH_INSTAGRAM_SECRET = 'a4cf3da5523f9e8be0b02f091ce7a7f9'  # Client Secr
 SOCIAL_AUTH_INSTAGRAM_EXTRA_DATA = [
     ('user', 'user'),
 ]
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '487987454497-pgoqpfq7s8tp7icr8c3c7pqm7mvmulbp.apps.googleusercontent.com'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'ev9_gghaFDWSRrvXNE8hGYea'
+SOCIAL_AUTH_USER_FIELDS=['email','first_name','username','password']
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '456152692700-qape5ita2bvpgdb8rpnb5bkltg8mhpus.apps.googleusercontent.com'
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
+   'https://www.googleapis.com/auth/userinfo.email',
+   'https://www.googleapis.com/auth/userinfo.profile',
+]
+SOCIAL_AUTH_FACEBOOK_KEY = '343723940813089'
+SOCIAL_AUTH_FACEBOOK_SECRET = 'b463a19816648184acecb3ef9e475a6a'
 
-LOGIN_URL = '/'
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
+SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
+SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
+    'fields': 'email, first_name, last_name'
+}
+TWILIO_ACCOUNT_SID = 'AC54df728fe4c735cb6166bcd63c28493e' 
+TWILIO_AUTH_TOKEN = 'f1340612aadca765e195ee7bef36f9b6'
+TWILIO_FROM_NUMBER = '+16206043084'
+PHONENUMBER_DEFAULT_REGION = 'EG'
+PHONENUMBER_DB_FORMAT = 'INTERNATIONAL'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
-
 EMAIL_HOST_USER = 'daipham952@gmail.com'
-EMAIL_HOST_PASSWORD = 'anhdai1234'
-STRIPE_PUBLIC_KEY = 'pk_test_51JQw3eCyNNrQWLvVFgRhLNllZy0YYW4Qbqgynut0cHvFO9ONptj6ifM452FMctnmocOlwalsoFx0KozYzFcYCiEm00gYKRLmVw'
-STRIPE_SECRET_KEY = 'sk_test_51JQw3eCyNNrQWLvVmcXm2FxJ2PANcvDgmwWiF9BeV73yDTwifQMylkDPUIo7QfwEcPH3nqL1Ut5LnBe1wD8baYAZ006wt4wNP1'
+EMAIL_HOST_PASSWORD = 'dmggkounbskbqrax'
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
+django_heroku.settings(locals())
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
